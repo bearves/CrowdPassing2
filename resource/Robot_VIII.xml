@@ -588,8 +588,20 @@
 					<yaw abbreviation="y" type="int" default="0"/>
 				</odj_param>
 			</odj>
-            <ro/>
-        </Commands>
+			<cpp>
+				<cpp_param type="group">
+     <!-- Initialize the gait planner -->
+					<i abbreviation="i" type="int" default="1"/>
+     <!-- Begin gait planning -->
+					<b abbreviation="b" type="int" default="1"/>
+     <!-- End gait planning -->
+					<e abbreviation="e" type="int" default="1"/>
+     <!-- Zero the force sensor-->
+					<c abbreviation="c" type="int" default="1"/>
+				</cpp_param>
+			</cpp>
+      <ro/>
+     </Commands>
     </Server>
     <Controller>
         <EtherCat>

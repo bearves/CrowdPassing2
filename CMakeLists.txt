@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+set( CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 # add prefix to every string in a variable
 FUNCTION(PREPEND var prefix)
@@ -67,20 +68,20 @@ set(XENOMAI_LINK_LIB native rtdm xenomai)
 set(ETHERLAB_INCL_DIR "/opt/etherlab/include")
 set(ETHERLAB_LINK_DIR "/opt/etherlab/lib")
 set(ETHERLAB_LINK_LIB ethercat rt)
-set(XSENS_INCL_DIR "/usr/Aris_Dependent/xsens/include")
-set(XSENS_LINK_LIB xdeviceclass xcommunication xstypes)
-set(XSENS_LINK_DIR "/usr/Aris_Dependent/xsens/lib")
+set(XSENS_INCL_DIR "/usr/IMU/include")
+set(XSENS_LINK_LIB IMU xcommunication xstypes)
+set(XSENS_LINK_DIR "/usr/IMU/lib")
 set(XNNITE_INCL_DIR "/usr/include/nite")#Driver for kinect
 set(XNNITE_LINK_DIR "/usr/lib")
 set(XNNITE_LINK_LIB )
 set(OPENNI_INCL_DIR "/usr/include/ni")#open NI for kinect
 set(OPENNI_LINK_DIR "/usr/lib")
 set(OPENNI_LINK_LIB OpenNI)
-set(ARIS_INCL_DIR "/usr/Aris/include")
-set(ARIS_LINK_DIR "/usr/Aris/lib")
+set(ARIS_INCL_DIR "/usr/Aris2/include")
+set(ARIS_LINK_DIR "/home/sun/Projects/Aris2/build/lib")
 set(ARIS_LINK_LIB aris_server aris_sensor aris_dynamic aris_control aris_core)
-set(ROBOTS_INCL_DIR "/usr/Robots/include")
-set(ROBOTS_LINK_DIR "/usr/Robots/lib")
+set(ROBOTS_INCL_DIR "/usr/Robots2/include")
+set(ROBOTS_LINK_DIR "/usr/Robots2/lib")
 set(ROBOTS_LINK_LIB Robot_Type_I Robot_Type_II Robot_Base)
 
 set(ALL_INCL_DIR ${ROBOTS_INCL_DIR} ${ARIS_INCL_DIR} ${OPENNI_INCL_DIR} ${XNNITE_INCL_DIR} ${XSENS_INCL_DIR} ${ETHERLAB_INCL_DIR} ${XENOMAI_INCL_DIR} ${GENERAL_INCL_DIR})
@@ -106,10 +107,18 @@ set(ALL_LINK_LIB ${ROBOTS_LINK_LIB} ${ARIS_LINK_LIB} ${XSENS_LINK_LIB} ${SYSTEM_
 endif(WIN32)
 
 include_directories(${ALL_INCL_DIR})
+set(ARIS_SOURCE_LOCATION "/home/sun/Projects/Aris2")
+include_directories("/usr/lapack/include")
+include_directories(${ARIS_SOURCE_LOCATION}/src/aris_control)
+include_directories(${ARIS_SOURCE_LOCATION}/src/aris_core)
+include_directories(${ARIS_SOURCE_LOCATION}/src/aris_dynamic)
+include_directories(${ARIS_SOURCE_LOCATION}/src/aris_server)
+include_directories(${ARIS_SOURCE_LOCATION}/src/aris_sensor)
+include_directories(${ARIS_SOURCE_LOCATION}/src)
 link_directories(${ALL_LINK_DIR})
 
 ################################### build server ####################################
-set(SOURCE_FILES main.cpp Move_Gait.cpp)
+set(SOURCE_FILES main.cpp Move_Gait.cpp CrowdPassingPlanner.cpp)
 PREPEND(FULL_SRC Server ${SOURCE_FILES})
 add_executable(Server ${FULL_SRC})
 target_link_libraries(Server ${ALL_LINK_LIB})
