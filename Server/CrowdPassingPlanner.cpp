@@ -70,6 +70,10 @@ int CrowdPassingPlanner::RequireStop(double timeNow)
         stepLeft = STEP_TO_COMPLETELY_STOP;
         gaitState = VGS_STOPPING;
     }
+    if ( gaitState == VGS_READY)
+    {
+        gaitState = VGS_STOPPED;
+    }
     return 0;
 }
 

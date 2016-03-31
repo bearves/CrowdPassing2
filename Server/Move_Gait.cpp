@@ -15,7 +15,7 @@
 
 Pipe<ForceTask::OpenDoorParam> openDoorPipe(true);
 
-void parseMoveWithRotate(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg)
+void parseMoveWithRotate(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg)
 {
     MoveRotateParam param;
 
@@ -60,7 +60,7 @@ void parseMoveWithRotate(const std::string &cmd, const map<std::string, std::str
     std::cout<<"finished parse"<<std::endl;
 }
 
-int moveWithRotate(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in)
+int moveWithRotate(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in)
 {
     auto &robot = static_cast<Robots::RobotBase &>(model);
     auto &param = static_cast<const MoveRotateParam &>(param_in);
@@ -96,7 +96,7 @@ std::atomic_int moveDir[6];
 std::atomic_bool isPull;
 std::atomic_bool isConfirm;
 
-void ForceTask::parseContinueMoveBegin(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg)
+void ForceTask::parseContinueMoveBegin(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg)
 {
     ContinueMoveParam param;
 
@@ -140,7 +140,7 @@ void ForceTask::parseContinueMoveBegin(const std::string &cmd, const map<std::st
     std::cout<<"finished parse"<<std::endl;
 }
 
-void ForceTask::parseContinueMoveJudge(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg)
+void ForceTask::parseContinueMoveJudge(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg)
 {
     for(auto &i:params)
     {
@@ -192,7 +192,7 @@ void ForceTask::parseContinueMoveJudge(const std::string &cmd, const map<std::st
 }
 
 /*****C & forceRatio must be adjusted when used on different robots*****/
-int ForceTask::continueMove(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in)
+int ForceTask::continueMove(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in)
 {
     auto &robot = static_cast<Robots::RobotBase &>(model);
     auto &param = static_cast<const ContinueMoveParam &>(param_in);
@@ -314,9 +314,9 @@ int ForceTask::continueMove(Aris::Dynamic::Model &model, const Aris::Dynamic::Pl
         robot.GetPmb(*bodyPm);
         robot.GetPee(nowPee);
         double pBody[6];
-        Aris::Dynamic::s_pe2pm(deltaPE,*deltaPm,"213");
-        Aris::Dynamic::s_pm_dot_pm(*bodyPm,*deltaPm,*realPm);
-        Aris::Dynamic::s_pm2pe(*realPm,realPE,"313");
+        aris::dynamic::s_pe2pm(deltaPE,*deltaPm,"213");
+        aris::dynamic::s_pm_dot_pm(*bodyPm,*deltaPm,*realPm);
+        aris::dynamic::s_pm2pe(*realPm,realPE,"313");
 
 
         robot.SetPeb(realPE);
@@ -349,9 +349,9 @@ int ForceTask::continueMove(Aris::Dynamic::Model &model, const Aris::Dynamic::Pl
 
         robot.GetPmb(*bodyPm);
         robot.GetPee(nowPee);
-        Aris::Dynamic::s_pe2pm(deltaPE,*deltaPm,"213");
-        Aris::Dynamic::s_pm_dot_pm(*bodyPm,*deltaPm,*realPm);
-        Aris::Dynamic::s_pm2pe(*realPm,realPE,"313");
+        aris::dynamic::s_pe2pm(deltaPE,*deltaPm,"213");
+        aris::dynamic::s_pm_dot_pm(*bodyPm,*deltaPm,*realPm);
+        aris::dynamic::s_pm2pe(*realPm,realPE,"313");
 
         robot.SetPeb(realPE);
         robot.SetPee(nowPee);
@@ -365,7 +365,7 @@ int ForceTask::continueMove(Aris::Dynamic::Model &model, const Aris::Dynamic::Pl
     }
 }
 
-void ForceTask::parseOpenDoorBegin(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg)
+void ForceTask::parseOpenDoorBegin(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg)
 {
     ContinueMoveParam param;
 
@@ -410,7 +410,7 @@ void ForceTask::parseOpenDoorBegin(const std::string &cmd, const map<std::string
     std::cout<<"finished parse"<<std::endl;
 }
 
-void ForceTask::parseOpenDoorJudge(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg)
+void ForceTask::parseOpenDoorJudge(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg)
 {
     for(auto &i:params)
     {
@@ -517,7 +517,7 @@ double ForceTask::norm(double * vector_in)
 
 
 //*****only for Robot VIII*****
-int ForceTask::openDoor(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in)
+int ForceTask::openDoor(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in)
 {
     auto &robot = static_cast<Robots::RobotBase &>(model);
     auto &param = static_cast<const ContinueMoveParam &>(param_in);
@@ -587,7 +587,7 @@ int ForceTask::openDoor(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanPa
                     ODP.forceSum[i]=0;
                     ODP.bodyVel_last[i]=0;
                 }
-                Aris::Dynamic::s_pe2pe("313",beginBodyPE,"213",ODP.bodyPE_last);
+                aris::dynamic::s_pe2pe("313",beginBodyPE,"213",ODP.bodyPE_last);
                 ODP.pauseFlag=false;
                 ODP.moveState_last=MoveState::None;
 
@@ -684,9 +684,9 @@ int ForceTask::openDoor(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanPa
 
                     //calculate the plane of the door. ax+by+cz=1,(a,b,c) is the vertical vector of the plane
                     ForceTask::inv3(*ODP.location,*invLocation);
-                    Aris::Dynamic::s_dgemm(3,1,3,1,*invLocation,3,planeConst,1,1,planeVertical,1);
-                    Aris::Dynamic::s_inv_pm(*beginBodyPm,*invBeginBodyPm);//have not rotate, beginBodyPm is right here
-                    Aris::Dynamic::s_pm_dot_v3(*invBeginBodyPm,planeVertical,planeVerticalInB);
+                    aris::dynamic::s_dgemm(3,1,3,1,*invLocation,3,planeConst,1,1,planeVertical,1);
+                    aris::dynamic::s_inv_pm(*beginBodyPm,*invBeginBodyPm);//have not rotate, beginBodyPm is right here
+                    aris::dynamic::s_pm_dot_v3(*invBeginBodyPm,planeVertical,planeVerticalInB);
                     ODP.planeYPR[0]=atan(planeVerticalInB[0]/planeVerticalInB[2]);
                     ODP.planeYPR[1]=-asin(planeVerticalInB[1]/ForceTask::norm(planeVerticalInB));
                     ODP.planeYPR[2]=0;
@@ -1001,14 +1001,14 @@ int ForceTask::openDoor(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanPa
                         ODP.now2startDistance[i]=ODP.startPE[i]-ODP.nowPE[i]; //startPE recorded at the last forward
                         ODP.handle2startDistance[i]=ODP.startPE[i]-ODP.handlePE[i];
                     }
-                    Aris::Dynamic::s_pm_dot_v3(*ODP.nowPm,xBodyInB,ODP.xNowInG);
-                    Aris::Dynamic::s_pm_dot_v3(*ODP.nowPm,yBodyInB,ODP.yNowInG);
+                    aris::dynamic::s_pm_dot_v3(*ODP.nowPm,xBodyInB,ODP.xNowInG);
+                    aris::dynamic::s_pm_dot_v3(*ODP.nowPm,yBodyInB,ODP.yNowInG);
 
                     ODP.now2startDistanceInB[0]=ForceTask::dotMultiply(ODP.now2startDistance,ODP.xNowInG);
                     ODP.now2startDistanceInB[1]=ForceTask::dotMultiply(ODP.now2startDistance,ODP.yNowInG)+h0;
                     ODP.now2startDistanceInB[2]=0;
 
-                    Aris::Dynamic::s_pm_dot_v3(*ODP.nowPm,ODP.now2startDistanceInB,ODP.now2startDistanceInG);
+                    aris::dynamic::s_pm_dot_v3(*ODP.nowPm,ODP.now2startDistanceInB,ODP.now2startDistanceInG);
                 }
 
                 break;
@@ -1156,9 +1156,9 @@ int ForceTask::openDoor(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanPa
             robot.GetPmb(*bodyPm);
             robot.GetPeb(bodyPE);
             double pBody[6];
-            Aris::Dynamic::s_pe2pm(deltaPE,*deltaPm,"213");
-            Aris::Dynamic::s_pm_dot_pm(*bodyPm,*deltaPm,*realPm);
-            Aris::Dynamic::s_pm2pe(*realPm,realPE,"313");
+            aris::dynamic::s_pe2pm(deltaPE,*deltaPm,"213");
+            aris::dynamic::s_pm_dot_pm(*bodyPm,*deltaPm,*realPm);
+            aris::dynamic::s_pm2pe(*realPm,realPE,"313");
 
             robot.GetPee(pEE);
             robot.SetPeb(realPE);
@@ -1169,14 +1169,14 @@ int ForceTask::openDoor(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanPa
             rt_printf("moveState:%d,forceRaw:%f,%f,%f,force:%f,%f,%f\n",ODP.moveState,param.force_data->at(0).Fx,param.force_data->at(0).Fy,param.force_data->at(0).Fz,ODP.force[0],ODP.force[1],ODP.force[2]);
         }
 
-        //Aris::Dynamic::s_pm_dot_pnt(*bodyPm,ODP.toolInR,ODP.toolInG);
+        //aris::dynamic::s_pm_dot_pnt(*bodyPm,ODP.toolInR,ODP.toolInG);
         bodyVel123[0]=bodyVel[0];
         bodyVel123[1]=bodyVel[1];
         bodyVel123[2]=bodyVel[2];
         bodyVel123[3]=bodyVel[4];
         bodyVel123[4]=bodyVel[3];
         bodyVel123[5]=bodyVel[5];
-        Aris::Dynamic::s_vp2vp(*bodyPm,bodyVel123,ODP.toolInR,nullptr,ODP.toolInG,ODP.toolVel);
+        aris::dynamic::s_vp2vp(*bodyPm,bodyVel123,ODP.toolInR,nullptr,ODP.toolInG,ODP.toolVel);
 
         robot.GetPee(pEE);
         memcpy(ODP.pEE_last,pEE,sizeof(double)*18);
@@ -1201,9 +1201,9 @@ int ForceTask::openDoor(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanPa
         robot.GetPmb(*bodyPm);
         robot.GetPeb(bodyPE);
         double pBody[6];
-        Aris::Dynamic::s_pe2pm(deltaPE,*deltaPm,"213");
-        Aris::Dynamic::s_pm_dot_pm(*bodyPm,*deltaPm,*realPm);
-        Aris::Dynamic::s_pm2pe(*realPm,realPE,"313");
+        aris::dynamic::s_pe2pm(deltaPE,*deltaPm,"213");
+        aris::dynamic::s_pm_dot_pm(*bodyPm,*deltaPm,*realPm);
+        aris::dynamic::s_pm2pe(*realPm,realPE,"313");
         double nowPee[18];
         robot.GetPee(nowPee);
         robot.SetPeb(realPE);
@@ -1226,7 +1226,7 @@ void ForceTask::StartRecordData()
             {
             struct OpenDoorParam param;
             static std::fstream fileGait;
-            std::string name = Aris::Core::logFileName();
+            std::string name = aris::core::logFileName();
             name.replace(name.rfind("log.txt"), std::strlen("openDoor.txt"), "openDoor.txt");
             fileGait.open(name.c_str(), std::ios::out | std::ios::trunc);
 
@@ -1265,6 +1265,8 @@ void ForceTask::StartRecordData()
 
 namespace CrowdPassing
 {
+double CrowdPassingGaitWrapper::forceSum[6] = {0, 0, 0, 0, 0, 0};
+double CrowdPassingGaitWrapper::forceBase[6] = {0, 0, 0, 0, 0, 0};
 double CrowdPassingGaitWrapper::rawForce[6] = {0, 0, 0, 0, 0, 0};
 double CrowdPassingGaitWrapper::filteredForce[6] = {0, 0, 0, 0, 0, 0};
 double CrowdPassingGaitWrapper::feetPosition[18] = {0, 0, 0, 0, 0, 0,
@@ -1272,11 +1274,12 @@ double CrowdPassingGaitWrapper::feetPosition[18] = {0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0};
 double CrowdPassingGaitWrapper::initialBodyPosition[6] = {0, 0, 0, 0, 0, 0};
 
+int CrowdPassingGaitWrapper::zeroingCount = 0;
 CrowdPassingPlanner CrowdPassingGaitWrapper::crowdPassingPlanner;
 LowpassFilter<6> CrowdPassingGaitWrapper::lpf;
 GAIT_CMD CrowdPassingGaitWrapper::command = GAIT_CMD::NOCMD;
 
-void CrowdPassingGaitWrapper::ParseCmds(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg)
+void CrowdPassingGaitWrapper::ParseCmds(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg)
 {
     CrowdPassingGaitParam param;
 
@@ -1313,7 +1316,7 @@ void CrowdPassingGaitWrapper::ParseCmds(const std::string &cmd, const map<std::s
     std::cout<<"finished parse"<<std::endl;
 }
 
-int CrowdPassingGaitWrapper::GaitFunction(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in)
+int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in)
 {
     auto &robot = static_cast<Robots::RobotBase &>(model);
     auto &param = static_cast<const CrowdPassingGaitParam &>(param_in);
@@ -1342,20 +1345,62 @@ int CrowdPassingGaitWrapper::GaitFunction(Aris::Dynamic::Model &model, const Ari
             break; 
         case GAIT_CMD::CLEAR_FORCE:
             rt_printf("GAIT CMD: CLEAR \n");
+            zeroingCount = 500;
+            for(int i = 0; i < 6; i++)
+            {
+                forceSum[i] = 0;
+            }
+            
             break; 
     }
+    
     command = GAIT_CMD::NOCMD;
+
+    if (param.count % 400 == 0)
+    {
+        for(int i = 0; i < 6; i++)
+        {
+            rt_printf("Force: %f\n", param.force_data->at(0).fce[i]);
+        }
+        for(int i = 0; i < 6; i++)
+        {
+            rt_printf("Force: %f\n", rawForce[i]);
+        }
+    }
+
+    // Do zeroing
+    if (zeroingCount > 0)
+    {
+        for(int i = 0; i < 6; i++)
+        {
+            forceSum[i] += param.force_data->at(0).fce[i];
+        }
+        
+        if (zeroingCount == 1)
+        {
+            for(int i = 0; i < 6; i++)
+            {
+                forceBase[i] = forceSum[i]/500.0;
+            }
+        }
+
+        zeroingCount--;
+    }
 
     for(int i = 0; i < 6; i++)
     {
-        rawForce[i] = param.force_data->at(0).fce[i];
+        rawForce[i] = param.force_data->at(0).fce[i] - forceBase[i];
     }
     lpf.DoFilter(rawForce, filteredForce);
 
     crowdPassingPlanner.DoIteration(timeNow, filteredForce, feetPosition);
     robot.SetPeb(initialBodyPosition);
     robot.SetPee(feetPosition, robot.ground());
-    return 0;
+    
+    if (crowdPassingPlanner.GetState() == CrowdPassingPlanner::VGS_STOPPED)
+        return 0;
+
+    return 1;
 }
 
 }

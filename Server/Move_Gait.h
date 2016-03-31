@@ -14,11 +14,11 @@
 #include "LowpassFilter.h"
 
 using namespace std;
-using namespace Aris::Control;
+using namespace aris::control;
 
 //static const double PI = 3.141592653589793;
 
-struct MoveRotateParam final :public Aris::Server::GaitParamBase
+struct MoveRotateParam final :public aris::server::GaitParamBase
 {
     double targetBodyPE213[6]{0};
     std::int32_t totalCount;
@@ -27,12 +27,12 @@ struct MoveRotateParam final :public Aris::Server::GaitParamBase
 
 namespace ForceTask
 {
-    void parseContinueMoveBegin(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg);
-    void parseContinueMoveJudge(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg);
-    void parseOpenDoorBegin(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg);
-    void parseOpenDoorJudge(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg);
-    int continueMove(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in);
-    int openDoor(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in);
+    void parseContinueMoveBegin(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg);
+    void parseContinueMoveJudge(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg);
+    void parseOpenDoorBegin(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg);
+    void parseOpenDoorJudge(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg);
+    int continueMove(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in);
+    int openDoor(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in);
     void StartRecordData();
     void inv3(double * matrix,double * invmatrix);
     void crossMultiply(double * vector_in1, double *vector_in2, double * vector_out);
@@ -42,13 +42,13 @@ namespace ForceTask
     class ATest
     { 
         public:
-            static int TestFunc(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in)
+            static int TestFunc(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in)
             {
                 return 0;
             }
     };
 
-    struct ContinueMoveParam final :public Aris::Server::GaitParamBase
+    struct ContinueMoveParam final :public aris::server::GaitParamBase
     {
         std::int32_t move_direction;
     };
@@ -153,8 +153,8 @@ namespace ForceTask
 extern Pipe<ForceTask::OpenDoorParam> openDoorPipe;
 static std::thread openDoorThread;
 
-void parseMoveWithRotate(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg);
-int moveWithRotate(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in);
+void parseMoveWithRotate(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg);
+int moveWithRotate(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in);
 
 namespace CrowdPassing
 {
@@ -167,7 +167,7 @@ namespace CrowdPassing
         CLEAR_FORCE = 4
     };
 
-    struct CrowdPassingGaitParam final : public Aris::Server::GaitParamBase
+    struct CrowdPassingGaitParam final : public aris::server::GaitParamBase
     {
     };
 
@@ -175,7 +175,10 @@ namespace CrowdPassing
     {
         public:
             
+            static int  zeroingCount;
             static double rawForce[6];
+            static double forceSum[6];
+            static double forceBase[6];
             static double filteredForce[6];
             static double feetPosition[18];
             static double initialBodyPosition[6];
@@ -183,8 +186,8 @@ namespace CrowdPassing
             static LowpassFilter<6> lpf;
             static GAIT_CMD command;
             
-            static void ParseCmds(const std::string &cmd, const map<std::string, std::string> &params, Aris::Core::Msg &msg);
-            static int GaitFunction(Aris::Dynamic::Model &model, const Aris::Dynamic::PlanParamBase &param_in);
+            static void ParseCmds(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg);
+            static int GaitFunction(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in);
     };
 
     static CrowdPassingGaitWrapper wrapper;

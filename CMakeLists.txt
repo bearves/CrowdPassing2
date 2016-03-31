@@ -77,8 +77,8 @@ set(XNNITE_LINK_LIB )
 set(OPENNI_INCL_DIR "/usr/include/ni")#open NI for kinect
 set(OPENNI_LINK_DIR "/usr/lib")
 set(OPENNI_LINK_LIB OpenNI)
-set(ARIS_INCL_DIR "/usr/Aris2/include")
-set(ARIS_LINK_DIR "/home/sun/Projects/Aris2/build/lib")
+set(ARIS_INCL_DIR "/usr/aris2/include")
+set(ARIS_LINK_DIR "/usr/aris2/lib")
 set(ARIS_LINK_LIB aris_server aris_sensor aris_dynamic aris_control aris_core)
 set(ROBOTS_INCL_DIR "/usr/Robots2/include")
 set(ROBOTS_LINK_DIR "/usr/Robots2/lib")
@@ -107,14 +107,6 @@ set(ALL_LINK_LIB ${ROBOTS_LINK_LIB} ${ARIS_LINK_LIB} ${XSENS_LINK_LIB} ${SYSTEM_
 endif(WIN32)
 
 include_directories(${ALL_INCL_DIR})
-set(ARIS_SOURCE_LOCATION "/home/sun/Projects/Aris2")
-include_directories("/usr/lapack/include")
-include_directories(${ARIS_SOURCE_LOCATION}/src/aris_control)
-include_directories(${ARIS_SOURCE_LOCATION}/src/aris_core)
-include_directories(${ARIS_SOURCE_LOCATION}/src/aris_dynamic)
-include_directories(${ARIS_SOURCE_LOCATION}/src/aris_server)
-include_directories(${ARIS_SOURCE_LOCATION}/src/aris_sensor)
-include_directories(${ARIS_SOURCE_LOCATION}/src)
 link_directories(${ALL_LINK_DIR})
 
 ################################### build server ####################################

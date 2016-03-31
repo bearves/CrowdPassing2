@@ -23,7 +23,7 @@ using namespace std;
 #include "Move_Gait.h"
 
 
-using namespace Aris::Core;
+using namespace aris::core;
 
 int main(int argc, char *argv[])
 {
@@ -40,16 +40,16 @@ int main(int argc, char *argv[])
     {
         xml_address = "/usr/Robots2/resource/Robot_Type_I/Robot_III/Robot_III.xml";
     }
-    else if (std::string(argv[1]) == "VIII")
+    else if (std::string(argv[1]) == "CUS")
     {
-        xml_address = "/home/hex/Desktop/mygit/RobotVIII_demo/resource/Robot_VIII.xml";
+        xml_address = "/home/hex/CrowdPassing2/resource/Robot_III.xml";
     }
     else
     {
         throw std::runtime_error("invalid robot name, please type in III or VIII");
     }
 
-    auto &rs = Aris::Server::ControlServer::instance();
+    auto &rs = aris::server::ControlServer::instance();
 
     rs.createModel<Robots::RobotTypeI>();
     rs.loadXml(xml_address.c_str());
@@ -74,15 +74,15 @@ int main(int argc, char *argv[])
 
     rs.setOnExit([&]()
             {
-            Aris::Core::XmlDocument xml_doc;
+            aris::core::XmlDocument xml_doc;
             xml_doc.LoadFile(xml_address.c_str());
             auto model_xml_ele = xml_doc.RootElement()->FirstChildElement("Model");
             if (!model_xml_ele)throw std::runtime_error("can't find Model element in xml file");
             rs.model().saveXml(*model_xml_ele);
 
-            Aris::Core::stopMsgLoop();
+            aris::core::stopMsgLoop();
             });
-    Aris::Core::runMsgLoop();
+    aris::core::runMsgLoop();
 
 
 
