@@ -6,8 +6,6 @@
 #include <map>
 #include <string>
 
-using namespace std;
-
 #include <aris.h>
 #include <Robot_Type_I.h>
 
@@ -22,12 +20,11 @@ using namespace std;
 
 #include "MoveGait.h"
 
-
 using namespace aris::core;
 
 int main(int argc, char *argv[])
 {
-    ForceTask::StartRecordData();
+    CrowdPassing::CrowdPassingGaitWrapper::StartReceiveData();
 
     std::string xml_address;
 
@@ -60,11 +57,6 @@ int main(int argc, char *argv[])
     rs.addCmd("wk", Robots::walkParse, Robots::walkGait);
     rs.addCmd("ro", Robots::resetOriginParse, Robots::resetOriginGait);
 
-    rs.addCmd("mr",parseMoveWithRotate,moveWithRotate);
-    rs.addCmd("cmb",ForceTask::parseContinueMoveBegin,ForceTask::continueMove);
-    rs.addCmd("cmj",ForceTask::parseContinueMoveJudge,ForceTask::continueMove);
-    rs.addCmd("odb",ForceTask::parseOpenDoorBegin,ForceTask::openDoor);
-    rs.addCmd("odj",ForceTask::parseOpenDoorJudge,ForceTask::openDoor);
     rs.addCmd(
             "cpp",
             CrowdPassing::CrowdPassingGaitWrapper::ParseCmds,
@@ -83,8 +75,5 @@ int main(int argc, char *argv[])
             aris::core::stopMsgLoop();
             });
     aris::core::runMsgLoop();
-
-
-
     return 0;
 }

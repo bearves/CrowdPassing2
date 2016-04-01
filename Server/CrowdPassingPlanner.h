@@ -41,7 +41,7 @@ public:
     InternalData GetInternalData(); 
 private:
 
-    static const int STEP_TO_COMPLETELY_STOP = 4;
+    static const int STEP_TO_COMPLETELY_STOP = 8;
     static const double rLegs[2][6];
     static const int LEG_MAP[6];
     static const double DISTANCE_COM_TO_FSR;
