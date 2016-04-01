@@ -174,12 +174,15 @@ namespace CrowdPassing
     class CrowdPassingGaitWrapper
     {
         public:
-            
+            static const double FORCE_DEADZONE[6];
+            static const double FORCE_LIMIT[6];
+            static const int ZERO_SAMPLE_COUNT = 500;
             static int  zeroingCount;
             static double rawForce[6];
             static double forceSum[6];
             static double forceBase[6];
             static double filteredForce[6];
+            static double mappedForce[6];
             static double feetPosition[18];
             static double initialBodyPosition[6];
             static CrowdPassingPlanner crowdPassingPlanner;
@@ -188,6 +191,10 @@ namespace CrowdPassing
             
             static void ParseCmds(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg);
             static int GaitFunction(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in);
+        private:
+            static void RequireZeroing();
+            static void Zeroing(const double* forceData);
+            static void ForceMapping(const double* srcForceData, double* destForceData);
     };
 
     static CrowdPassingGaitWrapper wrapper;

@@ -110,7 +110,7 @@ include_directories(${ALL_INCL_DIR})
 link_directories(${ALL_LINK_DIR})
 
 ################################### build server ####################################
-set(SOURCE_FILES main.cpp Move_Gait.cpp CrowdPassingPlanner.cpp)
+set(SOURCE_FILES main.cpp MoveGait.cpp CrowdPassingPlanner.cpp)
 PREPEND(FULL_SRC Server ${SOURCE_FILES})
 add_executable(Server ${FULL_SRC})
 target_link_libraries(Server ${ALL_LINK_LIB})

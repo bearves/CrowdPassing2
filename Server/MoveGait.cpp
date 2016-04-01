@@ -1,4 +1,4 @@
-#include "Move_Gait.h"
+#include "MoveGait.h"
 #include "rtdk.h"
 
 #ifdef UNIX
@@ -1265,9 +1265,12 @@ void ForceTask::StartRecordData()
 
 namespace CrowdPassing
 {
+const double CrowdPassingGaitWrapper::FORCE_LIMIT[6] = {120, 120, 120, 60, 60, 60};
+const double CrowdPassingGaitWrapper::FORCE_DEADZONE[6] = {2, 2, 2, 2, 2, 2};
 double CrowdPassingGaitWrapper::forceSum[6] = {0, 0, 0, 0, 0, 0};
 double CrowdPassingGaitWrapper::forceBase[6] = {0, 0, 0, 0, 0, 0};
 double CrowdPassingGaitWrapper::rawForce[6] = {0, 0, 0, 0, 0, 0};
+double CrowdPassingGaitWrapper::mappedForce[6] = {0, 0, 0, 0, 0, 0};
 double CrowdPassingGaitWrapper::filteredForce[6] = {0, 0, 0, 0, 0, 0};
 double CrowdPassingGaitWrapper::feetPosition[18] = {0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0,
@@ -1345,12 +1348,7 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
             break; 
         case GAIT_CMD::CLEAR_FORCE:
             rt_printf("GAIT CMD: CLEAR \n");
-            zeroingCount = 500;
-            for(int i = 0; i < 6; i++)
-            {
-                forceSum[i] = 0;
-            }
-            
+            RequireZeroing();
             break; 
     }
     
@@ -1369,31 +1367,15 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
     }
 
     // Do zeroing
-    if (zeroingCount > 0)
-    {
-        for(int i = 0; i < 6; i++)
-        {
-            forceSum[i] += param.force_data->at(0).fce[i];
-        }
-        
-        if (zeroingCount == 1)
-        {
-            for(int i = 0; i < 6; i++)
-            {
-                forceBase[i] = forceSum[i]/500.0;
-            }
-        }
-
-        zeroingCount--;
-    }
-
+    Zeroing(param.force_data->at(0).fce);
     for(int i = 0; i < 6; i++)
     {
         rawForce[i] = param.force_data->at(0).fce[i] - forceBase[i];
     }
     lpf.DoFilter(rawForce, filteredForce);
+    ForceMapping(filteredForce, mappedForce);
 
-    crowdPassingPlanner.DoIteration(timeNow, filteredForce, feetPosition);
+    crowdPassingPlanner.DoIteration(timeNow, mappedForce, feetPosition);
     robot.SetPeb(initialBodyPosition);
     robot.SetPee(feetPosition, robot.ground());
     
@@ -1401,6 +1383,57 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
         return 0;
 
     return 1;
+}
+
+void CrowdPassingGaitWrapper::RequireZeroing()
+{
+    zeroingCount = ZERO_SAMPLE_COUNT;
+    for(int i = 0; i < 6; i++)
+    {
+        forceSum[i] = 0;
+    }
+}
+
+void CrowdPassingGaitWrapper::Zeroing(const double* forceData)
+{
+    if (zeroingCount > 0)
+    {
+        for(int i = 0; i < 6; i++)
+        {
+            forceSum[i] += forceData[i];
+        }
+
+        if (zeroingCount == 1)
+        {
+            for(int i = 0; i < 6; i++)
+            {
+                forceBase[i] = forceSum[i]/ZERO_SAMPLE_COUNT;
+            }
+        }
+
+        zeroingCount--;
+    }
+}
+void CrowdPassingGaitWrapper::ForceMapping(const double* srcForceData, double* destForceData)
+{
+    // map sensed force to model
+    destForceData[0] =-1 * srcForceData[1];
+    destForceData[1] = 1 * srcForceData[0] ;
+    destForceData[2] = 1 * srcForceData[2] ;
+    destForceData[3] =-1 * srcForceData[4] ;
+    destForceData[4] = 1 * srcForceData[3] ;
+    destForceData[5] = 1 * srcForceData[5] ;
+
+    // saturation for force
+    for(int i = 0; i < 6; i++)
+    {
+        if (fabs(destForceData[i]) < 2.0)
+            destForceData[i] = 0;
+        if (destForceData[i] > FORCE_LIMIT[i])
+            destForceData[i] = FORCE_LIMIT[i];
+        if (destForceData[i] < -FORCE_LIMIT[i])
+            destForceData[i] = -FORCE_LIMIT[i];
+    }
 }
 
 }

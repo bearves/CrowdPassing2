@@ -20,7 +20,7 @@ using namespace std;
 #endif
 
 
-#include "Move_Gait.h"
+#include "MoveGait.h"
 
 
 using namespace aris::core;
