@@ -535,62 +535,6 @@
             </wk>
             <ro/>
 
-            <mr>
-                <mr_param type="group">
-                    <u abbreviation="u" type="double" default="0"/>
-                    <v abbreviation="v" type="double" default="0"/>
-                    <w abbreviation="w" type="double" default="0"/>
-                    <roll abbreviation="r" type="double" default="0"/>
-                    <pitch abbreviation="p" type="double" default="0"/>
-                    <yaw abbreviation="y" type="double" default="0"/>
-                    <totalCount abbreviation="t" type="double" default="3000"/>
-                </mr_param>
-            </mr>
-            <cmb default="cmb_param">
-                <cmb_param type="group">
-                    <u abbreviation="u" type="double" default="0"/>
-                    <v abbreviation="v" type="double" default="0"/>
-                    <w abbreviation="w" type="double" default="0"/>
-                    <roll abbreviation="r" type="double" default="0"/>
-                    <pitch abbreviation="p" type="double" default="0"/>
-                    <yaw abbreviation="y" type="double" default="0"/>
-                </cmb_param>
-            </cmb>
-            <cmj default="cmj_param">
-                <cmj_param type="group">
-                    <isStop abbreviation="s" type="int" default="0"/>
-                    <isForce abbreviation="f" type="int" default="0"/>
-                    <u abbreviation="u" type="int" default="0"/>
-                    <v abbreviation="v" type="int" default="0"/>
-                    <w abbreviation="w" type="int" default="0"/>
-                    <roll abbreviation="r" type="int" default="0"/>
-                    <pitch abbreviation="p" type="int" default="0"/>
-                    <yaw abbreviation="y" type="int" default="0"/>
-                </cmj_param>
-            </cmj>
-            <odb default="odb_param">
-                <odb_param type="group">
-                    <u abbreviation="u" type="double" default="0"/>
-                    <v abbreviation="v" type="double" default="0"/>
-                    <w abbreviation="w" type="double" default="0"/>
-                    <roll abbreviation="r" type="double" default="0"/>
-                    <pitch abbreviation="p" type="double" default="0"/>
-                    <yaw abbreviation="y" type="double" default="0"/>
-                </odb_param>
-            </odb>
-            <odj>
-                <odj_param type="group">
-                    <isPull abbreviation="i" type="int" default="1"/>
-                    <isStop abbreviation="s" type="int" default="0"/>    	  
-                    <isConfirm abbreviation="c" type="int" default="0"/>
-                    <u abbreviation="u" type="int" default="0"/>
-                    <v abbreviation="v" type="int" default="0"/>
-                    <w abbreviation="w" type="int" default="0"/>
-                    <roll abbreviation="r" type="int" default="0"/>
-                    <pitch abbreviation="p" type="int" default="0"/>
-                    <yaw abbreviation="y" type="int" default="0"/>
-                </odj_param>
-            </odj>
             <cpp>
                 <cpp_param type="unique">
                     <!-- Initialize the gait planner -->
