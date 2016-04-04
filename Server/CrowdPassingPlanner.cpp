@@ -34,7 +34,7 @@ int CrowdPassingPlanner::Initialize()
 void CrowdPassingPlanner::InitParams()
 {
     dt         = 0.001;
-    mRobot     = 40;
+    mRobot     = 60;
     IRobot     = 100;
     forceSafe  = 40;
     vMax       = 0.11;
@@ -97,13 +97,18 @@ int CrowdPassingPlanner::DoIteration(
             startTime = timeNow;
             gaitState = VGS_STARTED;
             lastTDTime = 0;
+            rt_printf("Current bodyOffset: %f\n%f\n%f\n", bodyOffset[0], bodyOffset[1], bodyOffset[2]);
+            //rt_printf("Current time: %f\n%f\n%f\n", timeNow, timeFromStart, lastTDTime);
+            rt_printf("Current robot model COM Pos: %f\n%f\n", svRobot[0], svRobot[1]);
         }
-        double pivot, tmp1, tmp2;
-        GetPivot((timeNow - startTime) /Tshift, pivot, tmp1, tmp2);
-        bodyOffset[0] = pivot * LenShift; // Move backward a little
-        bodyOffset[1] = 0;
-        bodyOffset[2] = 0;
-
+        else
+        {
+            double pivot, tmp1, tmp2;
+            GetPivot((timeNow - startTime) /Tshift, pivot, tmp1, tmp2);
+            bodyOffset[0] = pivot/3.1415927 * LenShift; // Move backward a little
+            bodyOffset[1] = 0;
+            bodyOffset[2] = 0;
+        }
     }
     else if (gaitState == VGS_STARTED || gaitState == VGS_STOPPING)
     {
@@ -151,6 +156,7 @@ int CrowdPassingPlanner::DoIteration(
         double timeRatio = (timeFromStart - lastTDTime) / THalfStep;
         LegMotionPlanning(timeRatio, HFoothold, lastHFoothold, svLeg);
         
+        // Print to debug
     }
     else
     {

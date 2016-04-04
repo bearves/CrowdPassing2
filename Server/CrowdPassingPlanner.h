@@ -2,6 +2,7 @@
 #define CROWD_PASSING_PLANNER_H
 
 #include <cstddef>
+#include <rtdk.h>
 
 class CrowdPassingPlanner
 {
