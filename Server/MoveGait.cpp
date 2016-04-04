@@ -83,9 +83,6 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
         case GAIT_CMD::NOCMD:
             break;
         case GAIT_CMD::INIT:
-            if (crowdPassingPlanner.GetState() == CrowdPassingPlanner::VGS_STARTED ||
-                crowdPassingPlanner.GetState() == CrowdPassingPlanner::VGS_STOPPING)
-                break;
             lpf.Initialize();
             lpf.SetCutFrequency(0.03, 1000);
             crowdPassingPlanner.Initialize();
