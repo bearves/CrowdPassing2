@@ -34,7 +34,7 @@ int CrowdPassingPlanner::Initialize()
 void CrowdPassingPlanner::InitParams()
 {
     dt         = 0.001;
-    mRobot     = 60;
+    mRobot     = 40;
     IRobot     = 100;
     forceSafe  = 40;
     vMax       = 0.11;
@@ -49,6 +49,8 @@ void CrowdPassingPlanner::InitParams()
     heightStep = 0.04;
     THalfStep  = 1.8;
     tauFoothold = 0.06;
+    Tshift = 3;
+    LenShift = -0.1;
 }
 
 int CrowdPassingPlanner::Start(double timeNow)
@@ -57,7 +59,7 @@ int CrowdPassingPlanner::Start(double timeNow)
     {
         startTime = timeNow;
         lastTDTime = 0;
-        gaitState = VGS_STARTED;
+        gaitState = VGS_GO_INIT;
     }
     return 0;
 }
@@ -70,7 +72,7 @@ int CrowdPassingPlanner::RequireStop(double timeNow)
         stepLeft = STEP_TO_COMPLETELY_STOP;
         gaitState = VGS_STOPPING;
     }
-    if ( gaitState == VGS_READY)
+    else if ( gaitState == VGS_READY || gaitState == VGS_GO_INIT)
     {
         gaitState = VGS_STOPPED;
     }
@@ -86,6 +88,22 @@ int CrowdPassingPlanner::DoIteration(
     {
         // output the initial position
         // actually do nothing
+    }
+    else if (gaitState == VGS_GO_INIT)
+    {
+        // Move to init finished
+        if (timeNow - startTime > Tshift)
+        {
+            startTime = timeNow;
+            gaitState = VGS_STARTED;
+            lastTDTime = 0;
+        }
+        double pivot, tmp1, tmp2;
+        GetPivot((timeNow - startTime) /Tshift, pivot, tmp1, tmp2);
+        bodyOffset[0] = pivot * LenShift; // Move backward a little
+        bodyOffset[1] = 0;
+        bodyOffset[2] = 0;
+
     }
     else if (gaitState == VGS_STARTED || gaitState == VGS_STOPPING)
     {
@@ -138,12 +156,13 @@ int CrowdPassingPlanner::DoIteration(
     {
         // do nothing, hold where it is
     }
+    // implictly use the svLeg and bodyOffset
     MapLegPosToActual(legPositionList);
 
     return 0;
 }
 
-void CrowdPassingPlanner::GetPivot(const double timeRatio, double& lenPivot, double& heightPivot)
+void CrowdPassingPlanner::GetPivot(const double timeRatio, double& rawPivot, double& lenPivot, double& heightPivot)
 {
     double tacc = 0.35;
     double acc = 3.1415926535897931 / tacc / (1 - tacc);
@@ -165,6 +184,7 @@ void CrowdPassingPlanner::GetPivot(const double timeRatio, double& lenPivot, dou
     }
     lenPivot = 0.5 * (1 - cos(pivot));
     heightPivot = heightStep * sin(pivot);
+    rawPivot = pivot;
 }
 
 template<std::size_t row, std::size_t col>
@@ -172,7 +192,8 @@ void CrowdPassingPlanner::LegMotionPlanning(const double timeRatio, double (&HFo
 {
     double lenPivot = 0;
     double heightPivot = 0;
-    GetPivot(timeRatio, lenPivot, heightPivot);
+    double rawPivot;
+    GetPivot(timeRatio, rawPivot, lenPivot, heightPivot);
     if (is_ASP_BSW)
     {
         for (int i = 0; i < 3; ++i)
@@ -296,8 +317,8 @@ void CrowdPassingPlanner::GetVirtualForce(
         double* fVirtualG,
         VIRTUAL_GAIT_STATE gaitState)
 {
-    double fTangent[2] = {forceSafe * cos(posTracking[2]), 
-                          forceSafe * sin(posTracking[2])};
+    double fTangent[2] = {-forceSafe * cos(posTracking[2]), 
+                          -forceSafe * sin(posTracking[2])};
 
     if (timeFromStart < 1.0)
     {
@@ -369,6 +390,7 @@ void CrowdPassingPlanner::InitStates()
     ClearStates(svRobot, 6);
     ClearStates(posTracking, 3);
     ClearStates(svEstFoothold, 3);
+    ClearStates(bodyOffset, 3);
     for(int i = 0; i < 2; i++)
     {
         svFoothold[i*2]   = svRobot[0];
@@ -410,9 +432,10 @@ void CrowdPassingPlanner::MapLegPosToActual(double* legPositionList)
 {
     double thetaBody = svRobot[2];
     double svLegLocal[18];
+    double svLegWithBodyOffset[18];
     double tmp1, tmp2;
 
-    // firstly transform the leg positions to local coordinates
+    // firstly transform the leg positions to local model COM coordinates
     for(int i = 0; i < 6; i++)
     {
         tmp1 = svLeg[i*3 + 0] - svRobot[0];
@@ -422,12 +445,22 @@ void CrowdPassingPlanner::MapLegPosToActual(double* legPositionList)
         svLegLocal[i*3 + 2] = svLeg[i*3 + 2] - heightCOM;
     }
 
+    // secondly transform the leg positions to local actual body COM coordinates considering the body offset
+    for(int i = 0; i < 6; i++)
+    {
+        tmp1 = svLegLocal[i*3 + 0] - bodyOffset[0];
+        tmp2 = svLegLocal[i*3 + 1] - bodyOffset[1];
+
+        svLegWithBodyOffset[i*3 + 0] =  cos(bodyOffset[2]) * tmp1 + sin(bodyOffset[2]) * tmp2;
+        svLegWithBodyOffset[i*3 + 1] = -sin(bodyOffset[2]) * tmp1 + cos(bodyOffset[2]) * tmp2;
+        svLegWithBodyOffset[i*3 + 2] = svLegLocal[i*3 + 2];
+    }
     // Then map the local leg position to actual leg coordinates
     for(int i = 0; i < 6; i++)
     {
-        legPositionList[i*3 + 0] = -svLegLocal[LEG_MAP[i]*3 + 1];
-        legPositionList[i*3 + 1] =  svLegLocal[LEG_MAP[i]*3 + 2];
-        legPositionList[i*3 + 2] = -svLegLocal[LEG_MAP[i]*3 + 0];
+        legPositionList[i*3 + 0] = -svLegWithBodyOffset[LEG_MAP[i]*3 + 1];
+        legPositionList[i*3 + 1] =  svLegWithBodyOffset[LEG_MAP[i]*3 + 2];
+        legPositionList[i*3 + 2] = -svLegWithBodyOffset[LEG_MAP[i]*3 + 0];
     }
 }
 
