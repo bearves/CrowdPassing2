@@ -20,11 +20,14 @@ public:
 
     enum VIRTUAL_GAIT_STATE
     {
-        VGS_READY    = 1,
-        VGS_GO_INIT  = 2,
-        VGS_STARTED  = 3,
-        VGS_STOPPING = 4,
-        VGS_STOPPED  = 5
+        VGS_READY        = 1,
+        VGS_LSTEP_FORWARD,
+        VGS_SSTEP_FORWARD,
+        VGS_DETECT_EDGE  ,
+        VGS_ADJUST       ,
+        VGS_RETREAT      ,
+        VGS_PUSH_DOOR,
+        VGS_STOPPED      
     };
 
     CrowdPassingPlanner();
@@ -82,6 +85,12 @@ private:
     double fContactG[3];
     double fVirtualG[3];
 
+    double detectedOffset;
+    int pushCount;
+    double lastEndingSvFthd[4];
+    double lastEndingSvRobot[6];
+
+
     InternalData internalData;
 
     // Virtual model parameters
@@ -103,6 +112,10 @@ private:
     double THalfStep;
     double tauFoothold;
     bool is_ASP_BSW;
+    double longStepLength;
+    double velDetect;
+    double TDetect;
+    double desiredOffset;
 
     // functions
     void InitStates();
@@ -132,6 +145,9 @@ private:
 
     template<std::size_t row, std::size_t col>
     void LegMotionPlanning(const double timeRatio, double (&HFoothold)[row][col], double (&lastHFoothold)[row][col], double* svLeg);
+
+    template<std::size_t row, std::size_t col>
+    void LegMotionPlanningWithHeight(const double timeRatio, double distance2Edge, double (&HFoothold)[row][col], double (&lastHFoothold)[row][col], double* svLeg);
 
     void GetPivot(const double timeRatio, double& rawPivot, double& lenPivot, double& heightPivot);
 };

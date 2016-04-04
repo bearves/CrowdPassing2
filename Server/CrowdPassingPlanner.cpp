@@ -1,4 +1,5 @@
 #include "CrowdPassingPlanner.h"
+#include "rtdk.h"
 #include <iostream>
 #include <cmath>
 #include <cstring>
@@ -33,24 +34,28 @@ int CrowdPassingPlanner::Initialize()
 
 void CrowdPassingPlanner::InitParams()
 {
-    dt         = 0.001;
-    mRobot     = 60;
-    IRobot     = 100;
-    forceSafe  = 40;
-    vMax       = 0.11;
-    bVirtual   = forceSafe / vMax;
-    l0         = 2.5;
-    kCorrect   = forceSafe / l0;
-    kAngle     = 10;
-    bAngle     = 40;
-    rStable    = 0.27;
-    heightCOM  = 0.85;
-    mActual    = 270;
-    heightStep = 0.04;
-    THalfStep  = 1.8;
-    tauFoothold = 0.06;
-    Tshift = 3;
-    LenShift = -0.1;
+    dt             = 0.001;
+    mRobot         = 40;
+    IRobot         = 100;
+    forceSafe      = 40;
+    vMax           = 0.11;
+    bVirtual       = forceSafe / vMax;
+    l0             = 2.5;
+    kCorrect       = forceSafe / l0;
+    kAngle         = 10;
+    bAngle         = 40;
+    rStable        = 0.27;
+    heightCOM      = 0.85;
+    mActual        = 270;
+    heightStep     = 0.04;
+    THalfStep      = 1.8;
+    tauFoothold    = 0.06;
+    Tshift         = 3;
+    LenShift       = -0.1;
+    longStepLength = -0.36;
+    velDetect      = -0.04;
+    TDetect        = 4;
+    desiredOffset  = -0.08;
 }
 
 int CrowdPassingPlanner::Start(double timeNow)
@@ -59,23 +64,14 @@ int CrowdPassingPlanner::Start(double timeNow)
     {
         startTime = timeNow;
         lastTDTime = 0;
-        gaitState = VGS_GO_INIT;
+        gaitState = VGS_LSTEP_FORWARD;
     }
     return 0;
 }
-
+    
 int CrowdPassingPlanner::RequireStop(double timeNow)
 {
-    if ( gaitState == VGS_STARTED )
-    {
-        requireStopTime = timeNow;
-        stepLeft = STEP_TO_COMPLETELY_STOP;
-        gaitState = VGS_STOPPING;
-    }
-    else if ( gaitState == VGS_READY || gaitState == VGS_GO_INIT)
-    {
-        gaitState = VGS_STOPPED;
-    }
+    gaitState = VGS_STOPPED;
     return 0;
 }
 
@@ -89,72 +85,249 @@ int CrowdPassingPlanner::DoIteration(
         // output the initial position
         // actually do nothing
     }
-    else if (gaitState == VGS_GO_INIT)
-    {
-        // Move to init finished
-        if (timeNow - startTime > Tshift)
-        {
-            startTime = timeNow;
-            gaitState = VGS_STARTED;
-            lastTDTime = 0;
-            rt_printf("Current bodyOffset: %f\n%f\n%f\n", bodyOffset[0], bodyOffset[1], bodyOffset[2]);
-            //rt_printf("Current time: %f\n%f\n%f\n", timeNow, timeFromStart, lastTDTime);
-            rt_printf("Current robot model COM Pos: %f\n%f\n", svRobot[0], svRobot[1]);
-        }
-        else
-        {
-            double pivot, tmp1, tmp2;
-            GetPivot((timeNow - startTime) /Tshift, pivot, tmp1, tmp2);
-            bodyOffset[0] = pivot/3.1415927 * LenShift; // Move backward a little
-            bodyOffset[1] = 0;
-            bodyOffset[2] = 0;
-        }
-    }
-    else if (gaitState == VGS_STARTED || gaitState == VGS_STOPPING)
+    else if (gaitState == VGS_LSTEP_FORWARD)
     {
         double timeFromStart = timeNow - startTime;
-        // Finding the tracking point
-        GetTrackingPoint(svRobot, posTracking); 
-         
-        // Transform the force feedback to the global coordinate
-        GetForceInGlobalCoordinate(fext, svRobot, fContactG);
-
-        // Construct the virtual forces
-        GetVirtualForce(timeFromStart, svRobot, posTracking, fVirtualG, gaitState);
-
-        // Solve virtual dynamics
-        UpdateRobotBodyState(svRobot, fVirtualG, fContactG, posZMP);
-
-        // Update gait state
-        if (timeFromStart - lastTDTime > THalfStep) // A half-step is completed
+        double pivot, tmp1, tmp2;
+        if (timeFromStart > (THalfStep*2))
         {
+            gaitState = VGS_DETECT_EDGE;
+            lastTDTime = 0;
+            startTime = timeNow;
             is_ASP_BSW = !is_ASP_BSW; // switch the gait state
             // reserve the foothold position of the last half-step
-            lastTDTime = timeFromStart;
             memcpy(lastsvFoothold, svFoothold, sizeof(svFoothold));
             memcpy(lastsvFootholdDir, svFootholdDir, sizeof(svFootholdDir));
             memcpy(lastHFoothold, HFoothold, sizeof(HFoothold));
-
-            if (gaitState == VGS_STOPPING)
-            {
-                stepLeft--;
-                if (stepLeft <= 0)
-                {
-                    gaitState = VGS_STOPPED;
-                }
-            }
         }
+        else
+        {
+            // Body traj
+            GetPivot(timeFromStart / (THalfStep*2), pivot, tmp1, tmp2);
+            svRobot[0] = pivot/3.1416*longStepLength;
+            svRobot[1] = 0; 
+            svRobot[2] = 0; 
+            // Planning for the first half step
+            // Update gait state
+            if (timeFromStart - lastTDTime > THalfStep) // A half-step is completed
+            {
+                rt_printf("Second Step----------------\n");
+                is_ASP_BSW = !is_ASP_BSW; // switch the gait state
+                // reserve the foothold position of the last half-step
+                lastTDTime = timeFromStart;
+                memcpy(lastsvFoothold, svFoothold, sizeof(svFoothold));
+                memcpy(lastsvFootholdDir, svFootholdDir, sizeof(svFootholdDir));
+                memcpy(lastHFoothold, HFoothold, sizeof(HFoothold));
+            }
 
-        // Estimate the next footholds of the swinging legs based on prediction
-        EstimateNextFootholdCenter(
-                timeFromStart, lastTDTime, svRobot, svFoothold, svFootholdDir);
+            // Calculate the next footholds of the swinging legs 
 
-        // Calculate footholds for each leg
-        CalculateFootholdOfEachLeg(svFoothold, svFootholdDir, HFoothold);
+            if (is_ASP_BSW) // B legs are swinging
+            {
+                svFootholdDot[2] = 0; 
+                svFoothold[2] = longStepLength; 
+                svFootholdDot[3] = 0; 
+                svFoothold[3] = 0; 
 
-        // Leg motion planning
-        double timeRatio = (timeFromStart - lastTDTime) / THalfStep;
-        LegMotionPlanning(timeRatio, HFoothold, lastHFoothold, svLeg);
+                svFootholdDirDot[1] = 0; 
+                svFootholdDir[1] = 0; 
+            }
+            else // A legs are swinging
+            {
+                svFootholdDot[0] = 0; 
+                svFoothold[0] = longStepLength;
+                svFootholdDot[1] = 0; 
+                svFoothold[1] = 0; 
+
+                svFootholdDirDot[0] = 0; 
+                svFootholdDir[0] = 0; 
+            }
+            // Calculate footholds for each leg
+            CalculateFootholdOfEachLeg(svFoothold, svFootholdDir, HFoothold);
+
+            // Leg motion planning
+            double timeRatio = (timeFromStart - lastTDTime) / THalfStep;
+            LegMotionPlanning(timeRatio, HFoothold, lastHFoothold, svLeg);
+        }
+        
+    }
+    else if (gaitState == VGS_DETECT_EDGE)
+    {
+        rt_printf("DETECTING EDGE\n");
+        double timeFromStart = timeNow - startTime;
+        if (timeNow - startTime > TDetect)
+        {
+            startTime = timeNow;
+            gaitState = VGS_STOPPED;
+            lastTDTime = 0;
+        }
+        else if(fabs(fext[0]) > 20)
+        {
+            startTime = timeNow;
+            detectedOffset = timeFromStart * velDetect;
+            gaitState = VGS_ADJUST;
+            lastTDTime = 0;
+            rt_printf("GO ADJUST\n");
+        }
+        else
+        {
+            svRobot[0] = timeFromStart * velDetect + longStepLength; // Move backward a little
+            svRobot[1] = 0;
+            svRobot[2] = 0;
+        }
+    }
+    else if (gaitState == VGS_ADJUST)
+    {
+        double timeFromStart = timeNow - startTime;
+        double pivot, tmp1, tmp2;
+        if (timeFromStart > (THalfStep*2))
+        {
+            gaitState = VGS_PUSH_DOOR;
+            pushCount = 0;
+            lastTDTime = 0;
+            startTime = timeNow;
+            is_ASP_BSW = !is_ASP_BSW; // switch the gait state
+            // reserve the foothold position of the last half-step
+            memcpy(lastsvFoothold, svFoothold, sizeof(svFoothold));
+            memcpy(lastsvFootholdDir, svFootholdDir, sizeof(svFootholdDir));
+            memcpy(lastHFoothold, HFoothold, sizeof(HFoothold));
+            CopyStates(lastEndingSvRobot, svRobot, 6);
+            CopyStates(lastEndingSvFthd, svFoothold, 4);
+            rt_printf("GO PUSH\n");
+            for(int i = 0; i < 3; i++)
+            {
+                rt_printf("BODY: %f\n", svRobot[i]);
+            }
+            for(int i = 0; i < 18; i++)
+            {
+                rt_printf("LEG: %f\n", svLeg[i]);
+            }
+            rt_printf("----------------------\n");
+        }
+        else
+        {
+            // Planning for the first half step
+            // Update gait state
+            if (timeFromStart - lastTDTime > THalfStep) // A half-step is completed
+            {
+                is_ASP_BSW = !is_ASP_BSW; // switch the gait state
+                // reserve the foothold position of the last half-step
+                lastTDTime = timeFromStart;
+                memcpy(lastsvFoothold, svFoothold, sizeof(svFoothold));
+                memcpy(lastsvFootholdDir, svFootholdDir, sizeof(svFootholdDir));
+                memcpy(lastHFoothold, HFoothold, sizeof(HFoothold));
+            }
+
+            // Calculate the next footholds of the swinging legs 
+
+            if (is_ASP_BSW) // B legs are swinging
+            {
+                svFootholdDot[2] = 0; 
+                svFoothold[2] = longStepLength + (detectedOffset - desiredOffset); 
+                svFootholdDot[3] = 0; 
+                svFoothold[3] = 0; 
+
+                svFootholdDirDot[1] = 0; 
+                svFootholdDir[1] = 0; 
+            }
+            else // A legs are swinging
+            {
+                svFootholdDot[0] = 0; 
+                svFoothold[0] = longStepLength + (detectedOffset - desiredOffset); 
+                svFootholdDot[1] = 0; 
+                svFoothold[1] = 0; 
+
+                svFootholdDirDot[0] = 0; 
+                svFootholdDir[0] = 0; 
+            }
+            // Calculate footholds for each leg
+            CalculateFootholdOfEachLeg(svFoothold, svFootholdDir, HFoothold);
+
+            // Leg motion planning
+            double timeRatio = (timeFromStart - lastTDTime) / THalfStep;
+            LegMotionPlanning(timeRatio, HFoothold, lastHFoothold, svLeg);
+        }
+    }
+    else if (gaitState == VGS_PUSH_DOOR)
+    {
+        double timeFromStart = timeNow - startTime;
+        double pivot, tmp1, tmp2;
+        if (pushCount > 8)
+        {
+            gaitState = VGS_STOPPED;
+        }
+        else if (timeFromStart > (THalfStep*2))
+        {
+            pushCount++;
+            gaitState = VGS_PUSH_DOOR;
+            CopyStates(lastEndingSvRobot, svRobot, 6);
+            CopyStates(lastEndingSvFthd, svFoothold, 4);
+            lastTDTime = 0;
+            startTime = timeNow;
+            is_ASP_BSW = !is_ASP_BSW; // switch the gait state
+            // reserve the foothold position of the last half-step
+            memcpy(lastsvFoothold, svFoothold, sizeof(svFoothold));
+            memcpy(lastsvFootholdDir, svFootholdDir, sizeof(svFootholdDir));
+            memcpy(lastHFoothold, HFoothold, sizeof(HFoothold));
+            rt_printf("GO PUSH AGAIN\n");
+        }
+        else
+        {
+            // Body traj
+            GetPivot(timeFromStart / (THalfStep*2), pivot, tmp1, tmp2);
+            svRobot[0] = lastEndingSvRobot[0] + pivot/3.1416 * longStepLength;
+            svRobot[1] = 0; 
+            svRobot[2] = 0; 
+            // Planning for the first half step
+            // Update gait state
+            if (timeFromStart - lastTDTime > THalfStep) // A half-step is completed
+            {
+                is_ASP_BSW = !is_ASP_BSW; // switch the gait state
+                // reserve the foothold position of the last half-step
+                lastTDTime = timeFromStart;
+                memcpy(lastsvFoothold, svFoothold, sizeof(svFoothold));
+                memcpy(lastsvFootholdDir, svFootholdDir, sizeof(svFootholdDir));
+                memcpy(lastHFoothold, HFoothold, sizeof(HFoothold));
+            }
+
+            // Calculate the next footholds of the swinging legs 
+
+            if (is_ASP_BSW) // B legs are swinging
+            {
+                svFootholdDot[2] = 0; 
+                svFoothold[2] = lastEndingSvFthd[2] + longStepLength; 
+                svFootholdDot[3] = 0; 
+                svFoothold[3] = 0; 
+
+                svFootholdDirDot[1] = 0; 
+                svFootholdDir[1] = 0; 
+            }
+            else // A legs are swinging
+            {
+                svFootholdDot[0] = 0; 
+                svFoothold[0] = lastEndingSvFthd[0] + longStepLength;
+                svFootholdDot[1] = 0; 
+                svFoothold[1] = 0; 
+
+                svFootholdDirDot[0] = 0; 
+                svFootholdDir[0] = 0; 
+            }
+            // Calculate footholds for each leg
+            CalculateFootholdOfEachLeg(svFoothold, svFootholdDir, HFoothold);
+
+            // Leg motion planning
+            double timeRatio = (timeFromStart - lastTDTime) / THalfStep;
+            LegMotionPlanning(timeRatio, HFoothold, lastHFoothold, svLeg);
+
+            //for(int i = 0; i < 3; i++)
+            //{
+                //rt_printf("BODY: %f\n", svRobot[i]);
+            //}
+            //for(int i = 0; i < 18; i++)
+            //{
+                //rt_printf("LEG: %f\n", svLeg[i]);
+            //}
+        }
         
         // Print to debug
     }
@@ -340,11 +513,6 @@ void CrowdPassingPlanner::GetVirtualForce(
     double normFCombine = sqrt(fCombine[0]*fCombine[0] + fCombine[1]*fCombine[1]);
     double fPush[2] = {forceSafe / normFCombine * fCombine[0],
                        forceSafe / normFCombine * fCombine[1]};
-    if (gaitState == VGS_STOPPING)
-    {
-        fPush[0] = 0;
-        fPush[1] = 0;
-    }
     double fDamp[2] = {-bVirtual * svRobot[3],
                        -bVirtual * svRobot[4]};
 
