@@ -20,9 +20,10 @@ public:
     enum VIRTUAL_GAIT_STATE
     {
         VGS_READY    = 1,
-        VGS_STARTED  = 2,
-        VGS_STOPPING = 3,
-        VGS_STOPPED  = 4
+        VGS_GO_INIT  = 2,
+        VGS_STARTED  = 3,
+        VGS_STOPPING = 4,
+        VGS_STOPPED  = 5
     };
 
     CrowdPassingPlanner();
@@ -45,7 +46,12 @@ private:
     static const double rLegs[2][6];
     static const int LEG_MAP[6];
     static const double DISTANCE_COM_TO_FSR;
+    // For body offset between the actual body and the model one, i.e. svRobot
+    double bodyOffset[3];
     
+    double Tshift;
+    double LenShift;
+
     // Gait planner state machine
     double startTime;
     double lastTDTime;
@@ -126,7 +132,7 @@ private:
     template<std::size_t row, std::size_t col>
     void LegMotionPlanning(const double timeRatio, double (&HFoothold)[row][col], double (&lastHFoothold)[row][col], double* svLeg);
 
-    void GetPivot(const double timeRatio, double& lenPivot, double& heightPivot);
+    void GetPivot(const double timeRatio, double& rawPivot, double& lenPivot, double& heightPivot);
 };
 
 #endif
