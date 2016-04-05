@@ -56,6 +56,10 @@ void CrowdPassingPlanner::InitParams()
     velDetect      = -0.04;
     TDetect        = 4;
     desiredOffset  = -0.08;
+
+    robotFrontier  = -0.77;
+    xStage1        = longStepLength + desiredOffset + robotFrontier;
+    xStage2        = longStepLength + desiredOffset + robotFrontier + 0.1;
 }
 
 int CrowdPassingPlanner::Start(double timeNow)
@@ -167,6 +171,9 @@ int CrowdPassingPlanner::DoIteration(
             detectedOffset = timeFromStart * velDetect;
             gaitState = VGS_ADJUST;
             lastTDTime = 0;
+            xStage1 = svRobot[0] + robotFrontier;
+            xStage2 = svRobot[0] + robotFrontier + 0.1;
+            
             rt_printf("GO ADJUST\n");
         }
         else
@@ -317,7 +324,7 @@ int CrowdPassingPlanner::DoIteration(
 
             // Leg motion planning
             double timeRatio = (timeFromStart - lastTDTime) / THalfStep;
-            LegMotionPlanning(timeRatio, HFoothold, lastHFoothold, svLeg);
+            LegMotionPlanningWithHeight(timeRatio, HFoothold, lastHFoothold, svLeg);
 
             //for(int i = 0; i < 3; i++)
             //{
@@ -401,6 +408,55 @@ void CrowdPassingPlanner::LegMotionPlanning(const double timeRatio, double (&HFo
             svLeg[(i*2)*3 + 1] = lastHFoothold[1][i*2] + 
                                    lenPivot * (HFoothold[1][i*2] - lastHFoothold[1][i*2]);
             svLeg[(i*2)*3 + 2] = heightPivot; 
+        }
+    }
+}
+
+template<std::size_t row, std::size_t col>
+void CrowdPassingPlanner::LegMotionPlanningWithHeight(const double timeRatio, double (&HFoothold)[row][col], double (&lastHFoothold)[row][col], double* svLeg)
+{
+    double lenPivot = 0;
+    double heightPivot = 0;
+    double rawPivot;
+    GetPivot(timeRatio, rawPivot, lenPivot, heightPivot);
+    if (is_ASP_BSW)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            double terrainHeightStance    = GetTerrainHeightData(HFoothold[0][i*2], HFoothold[1][i*2]);
+            double terrainHeightSwingNext = GetTerrainHeightData(HFoothold[0][i*2+1], HFoothold[1][i*2+1]);
+            double terrainHeightSwingLast = GetTerrainHeightData(lastHFoothold[0][i*2+1], lastHFoothold[1][i*2+1]);
+            svLeg[(i*2)*3 + 0] = HFoothold[0][i*2];
+            svLeg[(i*2)*3 + 1] = HFoothold[1][i*2];
+            svLeg[(i*2)*3 + 2] = terrainHeightStance; 
+            
+            svLeg[(i*2+1)*3 + 0] = lastHFoothold[0][i*2+1] + 
+                                   lenPivot * (HFoothold[0][i*2+1] - lastHFoothold[0][i*2+1]);
+            svLeg[(i*2+1)*3 + 1] = lastHFoothold[1][i*2+1] + 
+                                   lenPivot * (HFoothold[1][i*2+1] - lastHFoothold[1][i*2+1]);
+            svLeg[(i*2+1)*3 + 2] = terrainHeightSwingLast + 
+                                   lenPivot * (terrainHeightSwingNext - terrainHeightSwingLast) + 
+                                   heightPivot; 
+        }
+    }
+    else
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            double terrainHeightStance    = GetTerrainHeightData(HFoothold[0][i*2+1], HFoothold[1][i*2+1]);
+            double terrainHeightSwingNext = GetTerrainHeightData(HFoothold[0][i*2], HFoothold[1][i*2]);
+            double terrainHeightSwingLast = GetTerrainHeightData(lastHFoothold[0][i*2], lastHFoothold[1][i*2]);
+            svLeg[(i*2+1)*3 + 0] = HFoothold[0][i*2+1];
+            svLeg[(i*2+1)*3 + 1] = HFoothold[1][i*2+1];
+            svLeg[(i*2+1)*3 + 2] = terrainHeightStance; 
+            
+            svLeg[(i*2)*3 + 0] = lastHFoothold[0][i*2] + 
+                                   lenPivot * (HFoothold[0][i*2] - lastHFoothold[0][i*2]);
+            svLeg[(i*2)*3 + 1] = lastHFoothold[1][i*2] + 
+                                   lenPivot * (HFoothold[1][i*2] - lastHFoothold[1][i*2]);
+            svLeg[(i*2)*3 + 2] = terrainHeightSwingLast + 
+                                 lenPivot * (terrainHeightSwingNext - terrainHeightSwingLast) +
+                                 heightPivot; 
         }
     }
 }
@@ -659,3 +715,15 @@ void CrowdPassingPlanner::CopyStates(U* stateVectorDest, T* stateVectorSrc, int 
 }
 
 
+double CrowdPassingPlanner::GetTerrainHeightData(double x, double y)
+{
+    if (x < xStage1)
+    {
+        return 0.065;
+    }
+    else if ( x < xStage2 )
+    {
+        return 0.045;
+    }
+    return 0;
+}

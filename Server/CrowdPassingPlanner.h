@@ -117,6 +117,11 @@ private:
     double TDetect;
     double desiredOffset;
 
+    // Terrain configuration
+    double robotFrontier;
+    double xStage1;
+    double xStage2;
+
     // functions
     void InitStates();
     void InitParams();
@@ -147,9 +152,10 @@ private:
     void LegMotionPlanning(const double timeRatio, double (&HFoothold)[row][col], double (&lastHFoothold)[row][col], double* svLeg);
 
     template<std::size_t row, std::size_t col>
-    void LegMotionPlanningWithHeight(const double timeRatio, double distance2Edge, double (&HFoothold)[row][col], double (&lastHFoothold)[row][col], double* svLeg);
+    void LegMotionPlanningWithHeight(const double timeRatio, double (&HFoothold)[row][col], double (&lastHFoothold)[row][col], double* svLeg);
 
     void GetPivot(const double timeRatio, double& rawPivot, double& lenPivot, double& heightPivot);
+    double GetTerrainHeightData(double x, double y);
 };
 
 #endif
