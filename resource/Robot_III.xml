@@ -601,6 +601,8 @@
                     <e abbreviation="e" />
                     <!-- Zero the force sensor-->
                     <c abbreviation="c" />
+                    <!-- Ask for replanning-->
+                    <c abbreviation="r" />
                 </cpp_param>
             </cpp>
         </Commands>

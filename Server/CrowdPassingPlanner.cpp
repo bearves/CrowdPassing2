@@ -27,7 +27,8 @@ int CrowdPassingPlanner::Initialize()
     InitStates();
     
     is_ASP_BSW = true;
-    
+    isReplanningRequired = false;
+
     return 0;
 }
 
@@ -58,6 +59,7 @@ int CrowdPassingPlanner::Start(double timeNow)
         startTime = timeNow;
         lastTDTime = 0;
         gaitState = VGS_STARTED;
+        isReplanningRequired = false;
     }
     return 0;
 }
@@ -76,6 +78,10 @@ int CrowdPassingPlanner::RequireStop(double timeNow)
     }
     return 0;
 }
+int CrowdPassingPlanner::RequireReplanning(double timeNow)
+{
+    isReplanningRequired = true;
+}
 
 int CrowdPassingPlanner::DoIteration(
         double timeNow,
@@ -89,6 +95,12 @@ int CrowdPassingPlanner::DoIteration(
     }
     else if (gaitState == VGS_STARTED || gaitState == VGS_STOPPING)
     {
+        if (isReplanningRequired)
+        {
+            ResetOrigin();
+            ReplanRefPath();
+            isReplanningRequired = false;
+        }
         double timeFromStart = timeNow - startTime;
         // Finding the tracking point
         GetTrackingPoint(svRobot, posTracking); 
@@ -141,6 +153,73 @@ int CrowdPassingPlanner::DoIteration(
     MapLegPosToActual(legPositionList);
 
     return 0;
+}
+
+void CrowdPassingPlanner::ResetOrigin()
+{
+    double newCoord[3] = {svRobot[0], svRobot[1], svRobot[2]};
+    CoordTranform(&svRobot[0], newCoord);
+    CoordRotationDir(svRobot[2], newCoord);
+    CoordRotation(&svRobot[3], newCoord);
+
+    for(int i = 0; i < 2; i++)
+    {
+        CoordTranform(&svFoothold[i*2], newCoord);
+        CoordRotationDir(svFootholdDir[i], newCoord);
+        CoordRotation(&svFootholdDot[i*2], newCoord);
+
+        CoordTranform(&lastsvFoothold[i*2], newCoord);
+        CoordRotationDir(lastsvFootholdDir[i], newCoord);
+    }
+
+    for(int i = 0; i < 6; i++)
+    {
+        CoordTranform(HFoothold[0][i], HFoothold[1][i], newCoord);
+        CoordTranform(lastHFoothold[0][i], HFoothold[1][i], newCoord);
+    }
+}
+
+void CrowdPassingPlanner::CoordRotation(double *vecOut, double (&coord)[3])
+{
+    double cosb = cos(coord[2]);
+    double sinb = sin(coord[2]);
+    double vecIn[2] = {vecOut[0], vecOut[1]};
+
+    vecOut[0] = cosb * vecIn[0] + sinb * vecIn[1];
+    vecOut[1] =-sinb * vecIn[0] + cosb * vecIn[1];
+
+}
+
+void CrowdPassingPlanner::CoordTranform(double *vecOut, double (&coord)[3])
+{
+    double cosb = cos(coord[2]);
+    double sinb = sin(coord[2]);
+    double px = vecOut[0] - coord[0];
+    double py = vecOut[1] - coord[1];
+
+    vecOut[0] = cosb * px + sinb * py;
+    vecOut[1] =-sinb * px + cosb * py;
+
+}
+void CrowdPassingPlanner::CoordTranform(double &vecOut0, double &vecOut1, double (&coord)[3])
+{
+    double cosb = cos(coord[2]);
+    double sinb = sin(coord[2]);
+    double px = vecOut0 - coord[0];
+    double py = vecOut1 - coord[1];
+
+    vecOut0 = cosb * px + sinb * py;
+    vecOut1 =-sinb * px + cosb * py;
+
+}
+
+void CrowdPassingPlanner::CoordRotationDir(double &angOut, double (&coord)[3])
+{
+    angOut -= coord[2];
+}
+
+void CrowdPassingPlanner::ReplanRefPath()
+{
 }
 
 void CrowdPassingPlanner::GetPivot(const double timeRatio, double& lenPivot, double& heightPivot)

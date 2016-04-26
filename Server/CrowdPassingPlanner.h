@@ -31,12 +31,13 @@ public:
     int Initialize();
     int Start(double timeNow);
     int RequireStop(double timeNow);
+    int RequireReplanning(double timeNow);
     int DoIteration(
             /*IN*/double timeNow, 
             /*IN*/double * fext, 
             /*OUT*/ double * legPositionList); 
     
-    VIRTUAL_GAIT_STATE GetState() const { return gaitState;};
+    VIRTUAL_GAIT_STATE GetState() const { return gaitState;}
 
     InternalData GetInternalData(); 
 private:
@@ -51,6 +52,8 @@ private:
     double lastTDTime;
     double requireStopTime;
     double stepLeft;
+
+    bool isReplanningRequired;
 
     VIRTUAL_GAIT_STATE gaitState = VGS_READY;
 
@@ -100,6 +103,12 @@ private:
     // functions
     void InitStates();
     void InitParams();
+    void ResetOrigin();
+    void ReplanRefPath();
+    void CoordTranform(double *vecOut, double (&coord)[3]);
+    void CoordTranform(double &vecOut0, double &vecOut1, double (&coord)[3]);
+    void CoordRotation(double *vecOut, double (&coord)[3]);
+    void CoordRotationDir(double &angOut, double (&coord)[3]);
     void GetTrackingPoint(double* posRobot, double* posTracking);
     void ClearStates(double* stateVector, int length);
 

@@ -52,3 +52,5 @@ bin
 # temp files
 .*.*.swp
 .*.swp
+
+*.user

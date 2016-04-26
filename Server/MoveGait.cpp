@@ -63,6 +63,11 @@ void CrowdPassingGaitWrapper::ParseCmds(const std::string &cmd, const map<std::s
             command = GAIT_CMD::CLEAR_FORCE;
             break;
         }
+        else if(i.first=="r")
+        {
+            command = GAIT_CMD::REPLANNING;
+            break;
+        }
         else
         {
             std::cout<<"parse failed"<<std::endl;
@@ -103,6 +108,10 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
             rt_printf("GAIT CMD: CLEAR \n");
             RequireZeroing();
             break; 
+        case GAIT_CMD::REPLANNING:
+            rt_printf("Ask for replanning \n");
+            crowdPassingPlanner.RequireReplanning(timeNow);
+            break;
     }
     
     command = GAIT_CMD::NOCMD;

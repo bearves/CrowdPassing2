@@ -23,7 +23,8 @@ namespace CrowdPassing
         INIT  = 1,
         START = 2,
         STOP  = 3,
-        CLEAR_FORCE = 4
+        CLEAR_FORCE = 4,
+        REPLANNING = 5
     };
 
     struct CrowdPassingGaitParam final : public aris::server::GaitParamBase
