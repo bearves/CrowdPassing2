@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
+#include <rtdk.h>
 
 const double CrowdPassingPlanner::rLegs[2][6]=
     {{0.65, 0.00, -0.65, -0.65,  0.00,  0.65},
@@ -35,9 +36,9 @@ int CrowdPassingPlanner::Initialize()
 void CrowdPassingPlanner::InitParams()
 {
     dt         = 0.001;
-    mRobot     = 60;
-    IRobot     = 100;
-    forceSafe  = 40;
+    mRobot     = 70;
+    IRobot     = 140;
+    forceSafe  = 45;
     vMax       = 0.11;
     bVirtual   = forceSafe / vMax;
     l0         = 2.5;
@@ -97,8 +98,10 @@ int CrowdPassingPlanner::DoIteration(
     {
         if (isReplanningRequired)
         {
+            rt_printf("Replanning\n ==========\n");
             ResetOrigin();
             ReplanRefPath();
+            rt_printf("New place:\n");
             isReplanningRequired = false;
         }
         double timeFromStart = timeNow - startTime;
@@ -162,6 +165,9 @@ void CrowdPassingPlanner::ResetOrigin()
     CoordRotationDir(svRobot[2], newCoord);
     CoordRotation(&svRobot[3], newCoord);
 
+    CoordTranform(&svEstFoothold[0], newCoord);
+    CoordRotationDir(svEstFoothold[2], newCoord);
+
     for(int i = 0; i < 2; i++)
     {
         CoordTranform(&svFoothold[i*2], newCoord);
@@ -175,7 +181,7 @@ void CrowdPassingPlanner::ResetOrigin()
     for(int i = 0; i < 6; i++)
     {
         CoordTranform(HFoothold[0][i], HFoothold[1][i], newCoord);
-        CoordTranform(lastHFoothold[0][i], HFoothold[1][i], newCoord);
+        CoordTranform(lastHFoothold[0][i], lastHFoothold[1][i], newCoord);
     }
 }
 

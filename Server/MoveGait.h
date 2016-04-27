@@ -34,6 +34,7 @@ namespace CrowdPassing
     struct DiagnosticData
     {
         double forceData[6];
+        double svLeg[18];
     };
 
     class CrowdPassingGaitWrapper

@@ -116,11 +116,15 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
     
     command = GAIT_CMD::NOCMD;
 
-    if (param.count % 500 == 0)
+    if (param.count % 5 == 0)
     {
         for(int i = 0; i < 6; i++)
         {
             diagnosticData.forceData[i] = rawForce[i];
+        }
+        for(int i = 0; i < 18; i++)
+        {
+            diagnosticData.svLeg[i] = feetPosition[i];
         }
         dataPipe.sendToNrt(diagnosticData);
     }
@@ -200,22 +204,34 @@ void CrowdPassingGaitWrapper::StartReceiveData()
     static std::thread dataReceivingThread = std::thread([&]()
         {
             struct DiagnosticData data;
+            std::ofstream logData("logD.txt");
 
             long long count = -1;
             while (1)
             {
                 dataPipe.recvInNrt(data);
+                count++;
 
-                std::cout << ++count << " ";
+                if (count % 500 == 0){
 
-                for (int j = 0; j < 2; j++)
-                {
-                    for (int i = 0; i < 3; i++)
+                    std::cout << count << " ";
+
+                    for (int j = 0; j < 2; j++)
                     {
-                        std::cout << setw(5) << std::fixed << setprecision(1) << data.forceData[j*3+i] << "  ";
+                        for (int i = 0; i < 3; i++)
+                        {
+                            std::cout << setw(5) << std::fixed << setprecision(1) << data.forceData[j*3+i] << "  ";
+                        }
+                        std::cout << std::endl;
                     }
-                    std::cout << std::endl;
                 }
+
+                for (int i = 0; i < 18; i++)
+                {
+                    logData << data.svLeg[i] << "  ";
+                }
+                logData << std::endl;
+                
             }
 
         });
