@@ -31,6 +31,7 @@ int CrowdPassingGaitWrapper::zeroingCount = 0;
 CrowdPassingPlanner CrowdPassingGaitWrapper::crowdPassingPlanner;
 LowpassFilter<6> CrowdPassingGaitWrapper::lpf;
 GAIT_CMD CrowdPassingGaitWrapper::command = GAIT_CMD::NOCMD;
+double CrowdPassingGaitWrapper::pathInfo[2] = {0, 0};
 
 Pipe<DiagnosticData> CrowdPassingGaitWrapper::dataPipe(true);
 DiagnosticData CrowdPassingGaitWrapper::diagnosticData;
@@ -110,7 +111,9 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
             break; 
         case GAIT_CMD::REPLANNING:
             rt_printf("Ask for replanning \n");
-            crowdPassingPlanner.RequireReplanning(timeNow);
+            pathInfo[0] = 2;
+            pathInfo[1] = 0.4;
+            crowdPassingPlanner.RequireReplanning(timeNow, pathInfo);
             break;
     }
     

@@ -31,7 +31,7 @@ public:
     int Initialize();
     int Start(double timeNow);
     int RequireStop(double timeNow);
-    int RequireReplanning(double timeNow);
+    int RequireReplanning(double timeNow, double* pathInfo);
     int DoIteration(
             /*IN*/double timeNow, 
             /*IN*/double * fext, 
@@ -53,7 +53,12 @@ private:
     double requireStopTime;
     double stepLeft;
 
+    // Path information
     bool isReplanningRequired;
+    double refPathInfo[2];
+    
+    double xob = 0; // the position of the obstacle
+    double yob = 0;
 
     VIRTUAL_GAIT_STATE gaitState = VGS_READY;
 
@@ -104,7 +109,7 @@ private:
     void InitStates();
     void InitParams();
     void ResetOrigin();
-    void ReplanRefPath();
+    void ReplanRefPath(double* positionOB);
     void CoordTranform(double *vecOut, double (&coord)[3]);
     void CoordTranform(double &vecOut0, double &vecOut1, double (&coord)[3]);
     void CoordRotation(double *vecOut, double (&coord)[3]);

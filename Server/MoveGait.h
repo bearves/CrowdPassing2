@@ -53,7 +53,9 @@ namespace CrowdPassing
             static double initialBodyPosition[6];
             static CrowdPassingPlanner crowdPassingPlanner;
             static LowpassFilter<6> lpf;
+
             static GAIT_CMD command;
+            static double pathInfo[2];
             static Pipe<DiagnosticData> dataPipe;
             static DiagnosticData diagnosticData;
             

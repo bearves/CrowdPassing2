@@ -79,9 +79,12 @@ int CrowdPassingPlanner::RequireStop(double timeNow)
     }
     return 0;
 }
-int CrowdPassingPlanner::RequireReplanning(double timeNow)
+int CrowdPassingPlanner::RequireReplanning(double timeNow, double* pathInfo)
 {
     isReplanningRequired = true;
+    refPathInfo[0] = pathInfo[0];
+    refPathInfo[1] = pathInfo[1];
+    return 0;
 }
 
 int CrowdPassingPlanner::DoIteration(
@@ -100,7 +103,7 @@ int CrowdPassingPlanner::DoIteration(
         {
             rt_printf("Replanning\n ==========\n");
             ResetOrigin();
-            ReplanRefPath();
+            ReplanRefPath(refPathInfo);
             rt_printf("New place:\n");
             isReplanningRequired = false;
         }
@@ -224,8 +227,18 @@ void CrowdPassingPlanner::CoordRotationDir(double &angOut, double (&coord)[3])
     angOut -= coord[2];
 }
 
-void CrowdPassingPlanner::ReplanRefPath()
+void CrowdPassingPlanner::ReplanRefPath(double* positionOB)
 {
+    double px = positionOB[0];
+    // We keep the old path since the obstacle is too near or too far from the robot
+    if (px < 0.7 || px > 2.2)
+    {
+        xob = 10;
+        yob = 0;
+        return;
+    }
+    xob = positionOB[0];
+    yob = positionOB[1];
 }
 
 void CrowdPassingPlanner::GetPivot(const double timeRatio, double& lenPivot, double& heightPivot)
@@ -434,10 +447,40 @@ void CrowdPassingPlanner::GetForceInGlobalCoordinate(double* fSensor, double* sv
 
 void CrowdPassingPlanner::GetTrackingPoint(double* posRobot, double* posTracking)
 {
-    // Ref path: 0*x + 1*y = 0
-    posTracking[0] = posRobot[0];
-    posTracking[1] = 0;
-    posTracking[2] = 0;
+    if (fabs(yob) < 0.1 || xob > 3 || xob < 0.7)
+    {
+        // the path should be a straight line forward
+        posTracking[0] = posRobot[0];
+        posTracking[1] = 0;
+        posTracking[2] = 0;
+        return;
+    }
+
+    // the path is an arc from the origin, i.e. (0,0) to (xob, yob)
+    double arcRadius = (xob * xob + yob * yob)/(2*yob);
+    if (arcRadius > 0 && arcRadius < 1.2)
+    {
+        arcRadius = 1.2;
+    }
+    else if (arcRadius <= 0 && arcRadius >-1.2)
+    {
+        arcRadius = -1.2;
+    }
+    double vecA[2];
+    vecA[0] = posRobot[0] - 0;
+    vecA[1] = posRobot[1] - arcRadius;
+    double normA = sqrt(vecA[0] * vecA[0] + vecA[1]*vecA[1]);
+    double vecNormA[2] = {vecA[0]/normA, vecA[1]/normA};
+    // The position of the track point
+    posTracking[0] = vecNormA[0] * fabs(arcRadius) + 0;
+    posTracking[1] = vecNormA[1] * fabs(arcRadius) + arcRadius;
+    // Find the direction of the track point
+    double vecTangentA[2] = {-vecNormA[1], vecNormA[0]};
+    if (vecTangentA[0] < 0)
+    {
+        vecTangentA[0] *= -1;
+        vecTangentA[1] *= -1;
+    }
 }
 
 void CrowdPassingPlanner::ClearStates(double* stateVector, int length)
