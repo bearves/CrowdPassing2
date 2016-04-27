@@ -172,12 +172,12 @@ void FindObstacle(vector<int>& stRun, vector<int>& enRun, vector<int>& rowRun, i
         {
             if(tempObsPos.X >= 0)
             {
-                tempNextPosition.X = tempObsPos.X - tempObsPos.radius - 0.7;
+                tempNextPosition.X = tempObsPos.X - tempObsPos.radius - 2;
                 tempNextPosition.Y= tempObsPos.Y;
             }
             else
             {
-                tempNextPosition.X = tempObsPos.X + tempObsPos.radius + 0.7;
+                tempNextPosition.X = tempObsPos.X + tempObsPos.radius + 2;
                 tempNextPosition.Y = tempObsPos.Y;
             }
 

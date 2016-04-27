@@ -37,9 +37,9 @@ void CrowdPassingPlanner::InitParams()
 {
     dt         = 0.001;
     mRobot     = 70;
-    IRobot     = 240;
+    IRobot     = 100;
     forceSafe  = 45;
-    vMax       = 0.11;
+    vMax       = 0.07;
     bVirtual   = forceSafe / vMax;
     l0         = 2.5;
     kCorrect   = forceSafe / l0;
@@ -437,6 +437,7 @@ void CrowdPassingPlanner::GetForceInGlobalCoordinate(double* fSensor, double* sv
     fContactL[0] = fSensor[0];
     fContactL[1] = fSensor[1];
     fContactL[2] = fSensor[5] + DISTANCE_COM_TO_FSR * fContactL[1];
+    fContactL[2] /= 2;
 
     // Map the force to Global Coordinate
     double thetaBody = svRobot[2];
@@ -460,11 +461,11 @@ void CrowdPassingPlanner::GetTrackingPoint(double* posRobot, double* posTracking
     double arcRadius = (xob * xob + yob * yob)/(2*yob);
     if (arcRadius > 0 && arcRadius < 1.2)
     {
-        arcRadius = 1.2;
+        arcRadius = 0.7;
     }
     else if (arcRadius <= 0 && arcRadius >-1.2)
     {
-        arcRadius = -1.2;
+        arcRadius = -0.7;
     }
 
 
