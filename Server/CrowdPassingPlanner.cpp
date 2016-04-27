@@ -37,7 +37,7 @@ void CrowdPassingPlanner::InitParams()
 {
     dt         = 0.001;
     mRobot     = 70;
-    IRobot     = 140;
+    IRobot     = 240;
     forceSafe  = 45;
     vMax       = 0.11;
     bVirtual   = forceSafe / vMax;
@@ -466,6 +466,8 @@ void CrowdPassingPlanner::GetTrackingPoint(double* posRobot, double* posTracking
     {
         arcRadius = -1.2;
     }
+
+
     double vecA[2];
     vecA[0] = posRobot[0] - 0;
     vecA[1] = posRobot[1] - arcRadius;
@@ -474,6 +476,7 @@ void CrowdPassingPlanner::GetTrackingPoint(double* posRobot, double* posTracking
     // The position of the track point
     posTracking[0] = vecNormA[0] * fabs(arcRadius) + 0;
     posTracking[1] = vecNormA[1] * fabs(arcRadius) + arcRadius;
+    
     // Find the direction of the track point
     double vecTangentA[2] = {-vecNormA[1], vecNormA[0]};
     if (vecTangentA[0] < 0)
@@ -481,6 +484,7 @@ void CrowdPassingPlanner::GetTrackingPoint(double* posRobot, double* posTracking
         vecTangentA[0] *= -1;
         vecTangentA[1] *= -1;
     }
+    posTracking[2] = std::atan2(vecTangentA[1], vecTangentA[0]);
 }
 
 void CrowdPassingPlanner::ClearStates(double* stateVector, int length)

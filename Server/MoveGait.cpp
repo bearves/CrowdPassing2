@@ -112,20 +112,20 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
             break; 
         case GAIT_CMD::REPLANNING:
             rt_printf("Ask for replanning \n");
-            pathInfo[0] = 2;
-            pathInfo[1] = 0.4;
+            pathInfo[0] = 1.8;
+            pathInfo[1] = -1;
             crowdPassingPlanner.RequireReplanning(timeNow, pathInfo);
             break;
     }
 
-    //if (isWriteData == false)
-    //{
-        //rt_printf("Ask for replanning from vision \n");
-        //pathInfo[0] = nextPositionGCS[0];
-        //pathInfo[1] = nextPositionGCS[1];
-        //crowdPassingPlanner.RequireReplanning(timeNow, pathInfo);
-        //isWriteData = true;
-    //}
+    if (isWriteData == false)
+    {
+        rt_printf("Ask for replanning from vision \n");
+        pathInfo[0] = nextPositionGCS[0];
+        pathInfo[1] = nextPositionGCS[1];
+        crowdPassingPlanner.RequireReplanning(timeNow, pathInfo);
+        isWriteData = true;
+    }
     
     command = GAIT_CMD::NOCMD;
 

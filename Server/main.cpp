@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 {
     CrowdPassing::CrowdPassingGaitWrapper::StartReceiveData();
     Vision::StartVision();
+    cout << "Start configuration" << endl;
 
     std::string xml_address;
 
@@ -63,6 +64,7 @@ int main(int argc, char *argv[])
             CrowdPassing::CrowdPassingGaitWrapper::ParseCmds,
             CrowdPassing::CrowdPassingGaitWrapper::GaitFunction);
 
+    cout << "Configuration over" << endl;
     rs.open();
 
     rs.setOnExit([&]()

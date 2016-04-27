@@ -17,12 +17,14 @@ namespace Vision
 
     TerrainAnalysis terrainAnalysisResult;
     ObstacleDetection obstacleDetectionResult;
+    std::thread visionThread;
 
     void StartVision()
     {
         using namespace VisionForceExhange;
         kinect1.start();
-        auto visionThread = std::thread([]()
+        cout << "Begin vision thread\n";
+        visionThread = std::thread([&]()
         {
             while(true)
             {
@@ -53,6 +55,7 @@ namespace Vision
                 std::this_thread::sleep_for(std::chrono::milliseconds(600));
             }
         });
+        cout << "Vision thread started" << endl;
     }
 }
 #endif

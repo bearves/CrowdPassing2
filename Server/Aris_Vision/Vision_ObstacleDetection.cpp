@@ -167,8 +167,8 @@ void FindObstacle(vector<int>& stRun, vector<int>& enRun, vector<int>& rowRun, i
         tempObsPos.radius = sqrt(pow((right - left)/2, 2) + pow((up - down)/2, 2));
         Position tempNextPosition = {0, 0};
 
-        if (row.size()> 5&&fabs(left - right) > 0.125 && obsArea > 25&&tempNextPosition.Y > 0.7&&tempNextPosition.Y < 2)
-            //if (row.size()> 5&&fabs(left - right) > 0.125 && obsArea > 25)
+        //if (row.size()> 5&&fabs(left - right) > 0.125 && obsArea > 25&&tempNextPosition.Y > 0.7&&tempNextPosition.Y < 2)
+        if (row.size()> 5&&fabs(left - right) > 0.125 && obsArea > 25)
         {
             if(tempObsPos.X >= 0)
             {
