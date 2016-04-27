@@ -36,7 +36,7 @@ double CrowdPassingGaitWrapper::pathInfo[2] = {0, 0};
 Pipe<DiagnosticData> CrowdPassingGaitWrapper::dataPipe(true);
 DiagnosticData CrowdPassingGaitWrapper::diagnosticData;
 
-void CrowdPassingGaitWrapper::ParseCmds(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg)
+void CrowdPassingGaitWrapper::ParseCmds(const std::string &cmd, const std::map<std::string, std::string> &params, aris::core::Msg &msg)
 {
     CrowdPassingGaitParam param;
 
@@ -80,6 +80,7 @@ void CrowdPassingGaitWrapper::ParseCmds(const std::string &cmd, const map<std::s
 
 int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in)
 {
+    using namespace VisionForceExhange;
     auto &robot = static_cast<Robots::RobotBase &>(model);
     auto &param = static_cast<const CrowdPassingGaitParam &>(param_in);
     double timeNow = param.count * 0.001;
@@ -116,6 +117,15 @@ int CrowdPassingGaitWrapper::GaitFunction(aris::dynamic::Model &model, const ari
             crowdPassingPlanner.RequireReplanning(timeNow, pathInfo);
             break;
     }
+
+    //if (isWriteData == false)
+    //{
+        //rt_printf("Ask for replanning from vision \n");
+        //pathInfo[0] = nextPositionGCS[0];
+        //pathInfo[1] = nextPositionGCS[1];
+        //crowdPassingPlanner.RequireReplanning(timeNow, pathInfo);
+        //isWriteData = true;
+    //}
     
     command = GAIT_CMD::NOCMD;
 
@@ -223,7 +233,7 @@ void CrowdPassingGaitWrapper::StartReceiveData()
                     {
                         for (int i = 0; i < 3; i++)
                         {
-                            std::cout << setw(5) << std::fixed << setprecision(1) << data.forceData[j*3+i] << "  ";
+                            std::cout << std::setw(5) << std::fixed << std::setprecision(1) << data.forceData[j*3+i] << "  ";
                         }
                         std::cout << std::endl;
                     }

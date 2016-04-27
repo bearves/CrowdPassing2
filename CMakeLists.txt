@@ -83,8 +83,9 @@ set(ARIS_LINK_LIB aris_server aris_sensor aris_dynamic aris_control aris_core)
 set(ROBOTS_INCL_DIR "/usr/Robots2/include")
 set(ROBOTS_LINK_DIR "/usr/Robots2/lib")
 set(ROBOTS_LINK_LIB Robot_Type_I Robot_Type_II Robot_Base)
+set(EIGEN_INCL_DIR "/usr/local/include/eigen3")
 
-set(ALL_INCL_DIR ${ROBOTS_INCL_DIR} ${ARIS_INCL_DIR} ${OPENNI_INCL_DIR} ${XNNITE_INCL_DIR} ${XSENS_INCL_DIR} ${ETHERLAB_INCL_DIR} ${XENOMAI_INCL_DIR} ${GENERAL_INCL_DIR})
+set(ALL_INCL_DIR ${ROBOTS_INCL_DIR} ${ARIS_INCL_DIR} ${OPENNI_INCL_DIR} ${XNNITE_INCL_DIR} ${XSENS_INCL_DIR} ${ETHERLAB_INCL_DIR} ${XENOMAI_INCL_DIR} ${GENERAL_INCL_DIR} ${EIGEN_INCL_DIR})
 set(ALL_LINK_DIR ${ROBOTS_LINK_DIR} ${ARIS_LINK_DIR} ${OPENNI_LINK_DIR} ${XNNITE_LINK_DIR} ${XSENS_LINK_DIR} ${ETHERLAB_LINK_DIR} ${XENOMAI_LINK_DIR})
 set(ALL_LINK_LIB ${ROBOTS_LINK_LIB} ${ARIS_LINK_LIB} ${OPENNI_LINK_LIB} ${XNNITE_LINK_LIB} ${XSENS_LINK_LIB} ${ETHERLAB_LINK_LIB} ${XENOMAI_LINK_LIB} ${SYSTEM_LINK_LIB})
 endif(UNIX)
@@ -110,9 +111,11 @@ include_directories(${ALL_INCL_DIR})
 link_directories(${ALL_LINK_DIR})
 
 ################################### build server ####################################
-set(SOURCE_FILES main.cpp MoveGait.cpp CrowdPassingPlanner.cpp)
+set(SOURCE_FILES main.cpp MoveGait.cpp CrowdPassingPlanner.cpp DataExchange.cpp)
 PREPEND(FULL_SRC Server ${SOURCE_FILES})
-add_executable(Server ${FULL_SRC})
+set(VISION_SRC_FILES Aris_Vision.cpp  Vision_ObstacleDetection.cpp Vision_Terrain0.cpp)
+PREPEND(FULL_VISION_SRC_FILES "Server/Aris_Vision" ${VISION_SRC_FILES}) 
+add_executable(Server ${FULL_SRC} ${FULL_VISION_SRC_FILES})
 target_link_libraries(Server ${ALL_LINK_LIB})
 
 ################################### build client ####################################

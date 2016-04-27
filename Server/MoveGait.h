@@ -12,6 +12,7 @@
 #include <Robot_Gait.h>
 #include "CrowdPassingPlanner.h"
 #include "LowpassFilter.h"
+#include "DataExchange.h"
 
 using namespace aris::control;
 
@@ -59,7 +60,7 @@ namespace CrowdPassing
             static Pipe<DiagnosticData> dataPipe;
             static DiagnosticData diagnosticData;
             
-            static void ParseCmds(const std::string &cmd, const map<std::string, std::string> &params, aris::core::Msg &msg);
+            static void ParseCmds(const std::string &cmd, const std::map<std::string, std::string> &params, aris::core::Msg &msg);
             static int GaitFunction(aris::dynamic::Model &model, const aris::dynamic::PlanParamBase &param_in);
             static void StartReceiveData();
         private:

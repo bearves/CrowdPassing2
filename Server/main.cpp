@@ -17,7 +17,7 @@
 #include "unistd.h"
 #endif
 
-
+#include "VisionWrapper.h"
 #include "MoveGait.h"
 
 using namespace aris::core;
@@ -25,6 +25,7 @@ using namespace aris::core;
 int main(int argc, char *argv[])
 {
     CrowdPassing::CrowdPassingGaitWrapper::StartReceiveData();
+    Vision::StartVision();
 
     std::string xml_address;
 
